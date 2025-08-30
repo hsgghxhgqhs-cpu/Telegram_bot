@@ -1,12 +1,12 @@
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import (
-    ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes, PicklePersistence
+    ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 )
 import requests
 import datetime
 import os
 
-# --- Bot Token এখন Environment Variable থেকে আসবে ---
+# --- Bot Token Environment Variable থেকে নেবে ---
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 
@@ -79,18 +79,25 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     api_key = user_tokens[user_id]
 
-    # --- Rest of your existing code এখানে অপরিবর্তিত থাকবে ---
+    # --- Example Command: Today Stats ---
+    if text == "📊 Today Stats":
+        impressions, revenue, cpm = sowrov_stats(api_key, "today")
+        msg = f"📊 Today's Report\n\n👁 Impressions: {impressions}\n💵 Profit: ${round(revenue, 3)}\n📈 CPM: ${round(cpm, 2)}"
+        await update.message.reply_text(text=msg, reply_markup=get_main_reply_keyboard())
+    else:
+        await update.message.reply_text("Please choose a valid option from the keyboard.",
+                                        reply_markup=get_main_reply_keyboard())
 
 
 if __name__ == "__main__":
     if not BOT_TOKEN:
         raise ValueError("Error: BOT_TOKEN is not set.")
 
-    persistence = PicklePersistence(filepath="bot_data.pickle")
-    app = ApplicationBuilder().token(BOT_TOKEN).persistence(persistence).build()
+    # ❌ আর Persistence নেই
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", sowrov_start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    print("Bot is running with Reply Keyboard... 🚀")
+    print("Bot is running fresh every time... 🚀")
     app.run_polling()
